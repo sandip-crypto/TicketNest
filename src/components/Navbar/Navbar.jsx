@@ -1,75 +1,92 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import {
+  MdLocalMovies,
+  MdLiveTv,
+  MdEvent,
+  MdSportsEsports,
+  MdTheaters,
+  MdMenu,
+  MdClose,
+} from "react-icons/md";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
-    { to: "/explore/movies", label: "Movies" },
-    { to: "/explore/streams", label: "Streams" },
-    { to: "/explore/events", label: "Events" },
-    { to: "/explore/games-&-sports", label: "Games" },
-    { to: "/explore/theatre", label: "Theatres" },
+    { to: "/explore/movies", label: "Movies", icon: <MdLocalMovies /> },
+    { to: "/explore/streams", label: "Streams", icon: <MdLiveTv /> },
+    { to: "/explore/events", label: "Events", icon: <MdEvent /> },
+    {
+      to: "/explore/games-&-sports",
+      label: "Games",
+      icon: <MdSportsEsports />,
+    },
+    { to: "/explore/theatre", label: "Theatres", icon: <MdTheaters /> },
   ];
 
   return (
-    <nav className="bg-gray-100">
-      <div className="container px-4 py-2 mx-auto">
-        <div className="flex items-center justify-between">
-          {/* Mobile Menu Button */}
+    <nav className="bg-gray-100 shadow-md">
+      <div className="container px-4 mx-auto">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center">
+            <div className="hidden md:block">
+              <div className="flex items-baseline space-x-4">
+                {navItems.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      `flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                        isActive
+                          ? "text-white bg-teal-600"
+                          : "text-gray-700 hover:bg-teal-500 hover:text-white"
+                      }`
+                    }
+                  >
+                    {item.icon}
+                    <span className="ml-2">{item.label}</span>
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          </div>
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-600 focus:outline-none"
+              className="inline-flex items-center justify-center p-2 text-gray-700 transition duration-300 ease-in-out rounded-md hover:text-white hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
             >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMenuOpen ? <MdClose size={24} /> : <MdMenu size={24} />}
             </button>
           </div>
-
-          {/* Navigation Items */}
-          <div className="hidden space-x-4 font-semibold text-gray-600 md:flex">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  isActive ? "text-[#22B0AF]" : "hover:text-[#22B0AF]"
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-
-          {/* Placeholder for alignment */}
-          <div className="flex-1"></div>
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `block px-3 py-2 rounded-md text-base font-medium ${
-                    isActive
-                      ? "text-[#22B0AF] bg-gray-200"
-                      : "text-gray-600 hover:text-[#22B0AF] hover:bg-gray-200"
-                  }`
-                }
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
+      <div
+        className={`md:hidden transition-all duration-300 ease-in-out ${
+          isMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+        } overflow-hidden`}
+      >
+        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `flex items-center px-3 py-2 rounded-md text-base font-medium ${
+                  isActive
+                    ? "text-white bg-teal-600"
+                    : "text-gray-700 hover:bg-teal-500 hover:text-white"
+                }`
+              }
+              onClick={() => setIsMenuOpen(false)}
+            >
+              {item.icon}
+              <span className="ml-2">{item.label}</span>
+            </NavLink>
+          ))}
         </div>
-      )}
+      </div>
     </nav>
   );
 };
