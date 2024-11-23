@@ -9,40 +9,49 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 import { IoLocationOutline } from "react-icons/io5";
+import { RxPerson } from "react-icons/rx";
 
 import locations from "../../data/locations"; // Importing locations data
 import logo from "../../assets/images/ticketnest_logo.png";
+import Navbar from "../Navbar/Navbar";
 
-export default function Component() {
+export default function Header() {
   const [open, setOpen] = useState(false);
   const [city, setCity] = useState(() => {
     return localStorage.getItem("selectedCity") || "Kathmandu";
   });
-  const [searchQuery, setSearchQuery] = useState(""); // State for search input
+  const [searchQuery, setSearchQuery] = useState(""); // State for search input in the main header
+  const [dialogSearchQuery, setDialogSearchQuery] = useState(""); // State for search input in the dialog
   const [filteredLocations, setFilteredLocations] = useState(locations); // Filtered locations
 
   const handleCitySelection = (selectedCity) => {
     setCity(selectedCity);
     localStorage.setItem("selectedCity", selectedCity);
-    setOpen(false);
+    setOpen(false); // Close the dialog after selecting a city
   };
 
-  const handleSearch = (event) => {
-    const query = event.target.value.toLowerCase();
-    setSearchQuery(query);
-    setFilteredLocations(
-      locations.filter((loc) => loc.city.toLowerCase().includes(query))
-    );
+  const handleSearch = (query, inDialog = false) => {
+    const lowerCaseQuery = query.toLowerCase();
+    if (inDialog) {
+      setDialogSearchQuery(lowerCaseQuery);
+      setFilteredLocations(
+        locations.filter((loc) =>
+          loc.city.toLowerCase().includes(lowerCaseQuery)
+        )
+      );
+    } else {
+      setSearchQuery(lowerCaseQuery);
+    }
   };
 
   return (
-    <header className="bg-gradient-to-r from-teal-600 to-teal-800">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-teal-600 to-teal-800">
       <div className="container px-4 py-4 mx-auto sm:py-6">
         <div className="flex flex-col items-center space-y-4 sm:flex-row sm:justify-between sm:space-y-0">
           {/* Logo Section */}
           <div className="flex justify-center w-full sm:w-auto sm:justify-start">
             <Link
-              to="/explore/home"
+              to="/ticketnest/explore/home"
               className="text-lg font-bold text-black select-none"
             >
               <img src={logo} alt="logo" className="w-[100px] h-auto" />
@@ -55,9 +64,9 @@ export default function Component() {
             <input
               type="text"
               placeholder="Search for Movies, Events and Activities"
-              className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-full focus:outline-none focus:ring-0 focus:border-transparent"
               value={searchQuery}
-              onChange={handleSearch}
+              onChange={(e) => handleSearch(e.target.value)}
             />
           </div>
 
@@ -75,9 +84,10 @@ export default function Component() {
 
             {/* Sign In Button */}
             <Link
-              to="/signin"
-              className="px-3 py-2 text-sm font-medium text-teal-800 transition-colors duration-300 bg-white rounded-md hover:bg-gray-100 focus:ring-2 focus:ring-teal-500 focus:outline-none whitespace-nowrap"
+              to="/ticketnest/user/sign-in"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-teal-800 transition-colors duration-300 bg-white rounded-md hover:bg-gray-100 focus:ring-2 focus:ring-teal-500 focus:outline-none whitespace-nowrap"
             >
+              <RxPerson className="text-lg" />
               Sign In
             </Link>
           </div>
@@ -100,15 +110,15 @@ export default function Component() {
               Select your city or location
             </DialogTitle>
 
-            {/* Search Input */}
+            {/* Search Input in the Dialog */}
             <div className="relative mb-4">
               <IoIosSearch className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
               <input
                 type="text"
                 placeholder="Search for your city or location"
-                value={searchQuery}
-                onChange={handleSearch}
-                className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={dialogSearchQuery}
+                onChange={(e) => handleSearch(e.target.value, true)}
+                className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-full focus:outline-none focus:ring-0 focus:border-transparent"
               />
             </div>
 
@@ -133,6 +143,7 @@ export default function Component() {
           </DialogPanel>
         </div>
       </Dialog>
+      <Navbar />
     </header>
   );
 }

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   MdLocalMovies,
-  MdLiveTv,
   MdEvent,
   MdSportsEsports,
   MdTheaters,
@@ -15,7 +14,6 @@ const Navbar = () => {
 
   const navItems = [
     { to: "/explore/movies", label: "Movies", icon: <MdLocalMovies /> },
-    { to: "/explore/streams", label: "Streams", icon: <MdLiveTv /> },
     { to: "/explore/events", label: "Events", icon: <MdEvent /> },
     {
       to: "/explore/games-&-sports",
@@ -26,7 +24,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="bg-gray-100 shadow-md">
+    <nav className="bg-gray-100 shadow-md ">
       <div className="container px-4 mx-auto">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
@@ -61,7 +59,6 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-
       <div
         className={`md:hidden transition-all duration-300 ease-in-out ${
           isMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"

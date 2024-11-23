@@ -16,66 +16,33 @@ import {
   FaTheaterMasks,
   FaGamepad,
   FaMusic,
+  FaEdit,
 } from "react-icons/fa";
-
-const initialEvents = [
-  {
-    id: 1,
-    type: "movie",
-    name: "Inception",
-    thumbnail: "/placeholder.svg?height=100&width=100",
-    trailer: "https://example.com/inception-trailer",
-    description:
-      "A thief who enters the dreams of others to steal secrets from their subconscious.",
-    price: 12.99,
-    totalSeats: 100,
-    bookedSeats: [],
-    date: "2023-06-20",
-    time: "20:00",
-  },
-  {
-    id: 2,
-    type: "theater",
-    name: "Hamilton",
-    thumbnail: "/placeholder.svg?height=100&width=100",
-    description: "A musical about American Founding Father Alexander Hamilton.",
-    price: 89.99,
-    totalSeats: 200,
-    bookedSeats: [],
-    date: "2023-06-25",
-    time: "19:30",
-  },
-  {
-    id: 3,
-    type: "game",
-    name: "NBA Finals",
-    thumbnail: "/placeholder.svg?height=100&width=100",
-    description:
-      "The championship series of the National Basketball Association.",
-    price: 150,
-    totalSeats: 20000,
-    bookedSeats: [],
-    date: "2023-06-22",
-    time: "21:00",
-  },
-  {
-    id: 4,
-    type: "concert",
-    name: "Taylor Swift Concert",
-    thumbnail: "/placeholder.svg?height=100&width=100",
-    description: "Taylor Swift's latest world tour.",
-    price: 120,
-    totalSeats: 50000,
-    bookedSeats: [],
-    date: "2023-07-15",
-    time: "20:00",
-  },
-];
+import TheaterLayoutManager from "../../TheaterLayoutManager";
+import { initialEvents } from "./Dashboard/initialEvents";
 
 const VendorDashboard = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    // Check localStorage for a stored value
+    localStorage.getItem("darkMode") === "true"
+  );
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+
+    // Store the darkMode state in localStorage on change
+    localStorage.setItem("darkMode", darkMode);
+  }, [darkMode]);
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [events, setEvents] = useState(initialEvents);
+  const [events, setEvents] = useState(() => {
+    const storedEvents = localStorage.getItem("events");
+    return storedEvents ? JSON.parse(storedEvents) : initialEvents;
+  });
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [newEvent, setNewEvent] = useState({
     type: "movie",
@@ -87,8 +54,13 @@ const VendorDashboard = () => {
     totalSeats: "",
     date: "",
     time: "",
+    cast: "",
+    venue: "",
+    availableShows: [],
   });
   const [activeTab, setActiveTab] = useState("all");
+  const [layoutConfig, setLayoutConfig] = useState(null);
+  const [isLayoutConfirmed, setIsLayoutConfirmed] = useState(false);
 
   useEffect(() => {
     if (darkMode) {
@@ -98,12 +70,24 @@ const VendorDashboard = () => {
     }
   }, [darkMode]);
 
+  useEffect(() => {
+    localStorage.setItem("events", JSON.stringify(events));
+  }, [events]);
+
   const handleAddEvent = (e) => {
     e.preventDefault();
-    setEvents([
-      ...events,
-      { ...newEvent, id: events.length + 1, bookedSeats: [] },
-    ]);
+    if (!isLayoutConfirmed) {
+      // alert("Please confirm the layout before adding the event.");
+      return;
+    }
+    const eventToAdd = {
+      ...newEvent,
+      id: events.length + 1,
+      bookedSeats: [],
+      layoutConfig,
+    };
+    const updatedEvents = [...events, eventToAdd];
+    setEvents(updatedEvents);
     setNewEvent({
       type: "movie",
       name: "",
@@ -114,51 +98,111 @@ const VendorDashboard = () => {
       totalSeats: "",
       date: "",
       time: "",
+      cast: "",
+      venue: "",
+      availableShows: [],
     });
+    setLayoutConfig(null);
+    setIsLayoutConfirmed(false);
     setShowAddEvent(false);
   };
 
   const handleRemoveEvent = (id) => {
-    setEvents(events.filter((event) => event.id !== id));
+    const updatedEvents = events.filter((event) => event.id !== id);
+    setEvents(updatedEvents);
   };
 
-  const renderSeatLayout = (event) => {
-    const seats = [];
-    for (let i = 0; i < event.totalSeats; i++) {
-      seats.push(
-        <button
-          key={i}
-          className={`w-6 h-6 m-1 text-xs font-bold rounded-md ${
-            event.bookedSeats.includes(i)
-              ? "bg-red-500 text-white"
-              : "bg-green-500 text-white hover:bg-green-600"
-          }`}
-          onClick={() => {
-            const updatedEvent = { ...event };
-            if (updatedEvent.bookedSeats.includes(i)) {
-              updatedEvent.bookedSeats = updatedEvent.bookedSeats.filter(
-                (seat) => seat !== i
-              );
-            } else {
-              updatedEvent.bookedSeats.push(i);
-            }
-            setEvents(
-              events.map((e) => (e.id === event.id ? updatedEvent : e))
-            );
-          }}
-          aria-label={`Seat ${i + 1}`}
-        >
-          {i + 1}
-        </button>
-      );
-    }
-    return seats;
+  const handleEditEvent = (id) => {
+    const eventToEdit = events.find((event) => event.id === id);
+    setNewEvent(eventToEdit);
+    setShowAddEvent(true);
+  };
+
+  const handleAddShow = () => {
+    const newShow = { date: newEvent.date, time: newEvent.time };
+    setNewEvent({
+      ...newEvent,
+      availableShows: [...newEvent.availableShows, newShow],
+      date: "",
+      time: "",
+    });
+  };
+
+  const handleLayoutConfirm = (config) => {
+    setLayoutConfig(config);
+    setIsLayoutConfirmed(true);
   };
 
   const filteredEvents =
     activeTab === "all"
       ? events
       : events.filter((event) => event.type === activeTab);
+
+  const renderEventTypeFields = () => {
+    switch (newEvent.type) {
+      case "movie":
+        return (
+          <>
+            <input
+              type="text"
+              placeholder="Trailer URL"
+              value={newEvent.trailer}
+              onChange={(e) =>
+                setNewEvent({ ...newEvent, trailer: e.target.value })
+              }
+              className="w-full p-3 mt-3 border rounded-md dark:bg-gray-700 dark:text-white"
+            />
+            <input
+              type="text"
+              placeholder="Cast (comma-separated)"
+              value={newEvent.cast}
+              onChange={(e) =>
+                setNewEvent({ ...newEvent, cast: e.target.value })
+              }
+              className="w-full p-3 mt-3 border rounded-md dark:bg-gray-700 dark:text-white"
+            />
+          </>
+        );
+      case "theater":
+        return (
+          <input
+            type="text"
+            placeholder="Venue"
+            value={newEvent.venue}
+            onChange={(e) =>
+              setNewEvent({ ...newEvent, venue: e.target.value })
+            }
+            className="w-full p-3 mt-3 border rounded-md dark:bg-gray-700 dark:text-white"
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  const renderSeatLayout = (layout) => {
+    return (
+      <div
+        className="grid max-w-full gap-1 overflow-auto max-h-60"
+        style={{
+          gridTemplateColumns: `repeat(${layout.columns}, minmax(0, 1fr))`,
+        }}
+      >
+        {layout.seats.map((seat) => (
+          <div
+            key={seat.id}
+            className={`w-8 h-8 flex items-center justify-center text-xs font-bold rounded-sm ${
+              seat.status === "removed"
+                ? "bg-transparent"
+                : "bg-blue-500 text-white"
+            }`}
+          >
+            {seat.status !== "removed" && `${seat.row}-${seat.column}`}
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className={`flex h-screen bg-gray-100 ${darkMode ? "dark" : ""}`}>
@@ -332,134 +376,166 @@ const VendorDashboard = () => {
 
             {/* Add Event Form */}
             {showAddEvent && (
-              <div
-                className="fixed inset-0 z-50 w-full h-full overflow-y-auto bg-gray-600 bg-opacity-50"
-                id="my-modal"
-              >
-                <div className="relative p-5 mx-auto bg-white border rounded-md shadow-lg top-20 w-96 dark:bg-gray-800">
-                  <div className="mt-3 text-center">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-                      Add New Event
-                    </h3>
-                    <form onSubmit={handleAddEvent} className="mt-2 text-left">
-                      <select
-                        value={newEvent.type}
-                        onChange={(e) =>
-                          setNewEvent({ ...newEvent, type: e.target.value })
-                        }
-                        className="w-full p-2 mt-2 border rounded-md dark:bg-gray-700 dark:text-white"
-                        required
+              <div className="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+                <div className="relative w-full max-w-4xl mx-auto my-6">
+                  <div className="relative flex flex-col w-full bg-white border-0 rounded-lg shadow-lg outline-none focus:outline-none dark:bg-gray-800">
+                    <div className="flex items-start justify-between p-5 border-b border-solid rounded-t border-blueGray-200">
+                      <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                        Add New Event
+                      </h3>
+                      <button
+                        className="float-right p-1 ml-auto text-3xl font-semibold leading-none text-black bg-transparent border-0 outline-none opacity-5 focus:outline-none"
+                        onClick={() => setShowAddEvent(false)}
                       >
-                        <option value="movie">Movie</option>
-                        <option value="theater">Theater</option>
-                        <option value="game">Game</option>
-                        <option value="concert">Concert</option>
-                      </select>
-                      <input
-                        type="text"
-                        placeholder="Event Name"
-                        value={newEvent.name}
-                        onChange={(e) =>
-                          setNewEvent({ ...newEvent, name: e.target.value })
-                        }
-                        className="w-full p-2 mt-2 border rounded-md dark:bg-gray-700 dark:text-white"
-                        required
-                      />
-                      <input
-                        type="text"
-                        placeholder="Thumbnail URL"
-                        value={newEvent.thumbnail}
-                        onChange={(e) =>
-                          setNewEvent({
-                            ...newEvent,
-                            thumbnail: e.target.value,
-                          })
-                        }
-                        className="w-full p-2 mt-2 border rounded-md dark:bg-gray-700 dark:text-white"
-                        required
-                      />
-                      {newEvent.type === "movie" && (
+                        <span className="block w-6 h-6 text-2xl text-black bg-transparent outline-none opacity-5 focus:outline-none">
+                          ×
+                        </span>
+                      </button>
+                    </div>
+                    <div className="relative flex-auto p-6 overflow-y-auto max-h-[calc(100vh-200px)]">
+                      <form onSubmit={handleAddEvent} className="space-y-4">
+                        <select
+                          value={newEvent.type}
+                          onChange={(e) =>
+                            setNewEvent({ ...newEvent, type: e.target.value })
+                          }
+                          className="w-full p-3 border rounded-md dark:bg-gray-700 dark:text-white"
+                          required
+                        >
+                          <option value="movie">Movie</option>
+                          <option value="theater">Theater</option>
+                          <option value="game">Game</option>
+                          <option value="concert">Concert</option>
+                          <option value="event">Event</option>
+                        </select>
                         <input
                           type="text"
-                          placeholder="Trailer URL"
-                          value={newEvent.trailer}
+                          placeholder="Event Name"
+                          value={newEvent.name}
+                          onChange={(e) =>
+                            setNewEvent({ ...newEvent, name: e.target.value })
+                          }
+                          className="w-full p-3 border rounded-md dark:bg-gray-700 dark:text-white"
+                          required
+                        />
+                        <div>
+                          <label
+                            htmlFor="thumbnail"
+                            className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            Thumbnail
+                          </label>
+                          <input
+                            type="file"
+                            id="thumbnail"
+                            onChange={(e) =>
+                              setNewEvent({
+                                ...newEvent,
+                                thumbnail: e.target.files[0],
+                              })
+                            }
+                            className="w-full p-3 border rounded-md dark:bg-gray-700 dark:text-white"
+                            required
+                          />
+                        </div>
+                        {renderEventTypeFields()}
+                        <textarea
+                          placeholder="Description"
+                          value={newEvent.description}
                           onChange={(e) =>
                             setNewEvent({
                               ...newEvent,
-                              trailer: e.target.value,
+                              description: e.target.value,
                             })
                           }
-                          className="w-full p-2 mt-2 border rounded-md dark:bg-gray-700 dark:text-white"
+                          className="w-full p-3 border rounded-md dark:bg-gray-700 dark:text-white"
+                          required
+                        ></textarea>
+                        <input
+                          type="number"
+                          placeholder="Price"
+                          value={newEvent.price}
+                          onChange={(e) =>
+                            setNewEvent({ ...newEvent, price: e.target.value })
+                          }
+                          className="w-full p-3 border rounded-md dark:bg-gray-700 dark:text-white"
+                          required
                         />
-                      )}
-                      <textarea
-                        placeholder="Description"
-                        value={newEvent.description}
-                        onChange={(e) =>
-                          setNewEvent({
-                            ...newEvent,
-                            description: e.target.value,
-                          })
-                        }
-                        className="w-full p-2 mt-2 border rounded-md dark:bg-gray-700 dark:text-white"
-                        required
-                      ></textarea>
-                      <input
-                        type="number"
-                        placeholder="Price"
-                        value={newEvent.price}
-                        onChange={(e) =>
-                          setNewEvent({ ...newEvent, price: e.target.value })
-                        }
-                        className="w-full p-2 mt-2 border rounded-md dark:bg-gray-700 dark:text-white"
-                        required
-                      />
-                      <input
-                        type="number"
-                        placeholder="Total Seats"
-                        value={newEvent.totalSeats}
-                        onChange={(e) =>
-                          setNewEvent({
-                            ...newEvent,
-                            totalSeats: e.target.value,
-                          })
-                        }
-                        className="w-full p-2 mt-2 border rounded-md dark:bg-gray-700 dark:text-white"
-                        required
-                      />
-                      <input
-                        type="date"
-                        value={newEvent.date}
-                        onChange={(e) =>
-                          setNewEvent({ ...newEvent, date: e.target.value })
-                        }
-                        className="w-full p-2 mt-2 border rounded-md dark:bg-gray-700 dark:text-white"
-                        required
-                      />
-                      <input
-                        type="time"
-                        value={newEvent.time}
-                        onChange={(e) =>
-                          setNewEvent({ ...newEvent, time: e.target.value })
-                        }
-                        className="w-full p-2 mt-2 border rounded-md dark:bg-gray-700 dark:text-white"
-                        required
-                      />
-                      <div className="items-center px-4 py-3">
+                        <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
+                          <input
+                            type="date"
+                            value={newEvent.date}
+                            onChange={(e) =>
+                              setNewEvent({ ...newEvent, date: e.target.value })
+                            }
+                            className="w-full p-3 border rounded-md dark:bg-gray-700 dark:text-white sm:w-1/2"
+                            required
+                          />
+                          <input
+                            type="time"
+                            value={newEvent.time}
+                            onChange={(e) =>
+                              setNewEvent({ ...newEvent, time: e.target.value })
+                            }
+                            className="w-full p-3 border rounded-md dark:bg-gray-700 dark:text-white sm:w-1/2"
+                            required
+                          />
+                        </div>
                         <button
-                          type="submit"
-                          className="w-full px-4 py-2 text-base font-medium text-white bg-blue-500 rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          type="button"
+                          onClick={handleAddShow}
+                          className="w-full px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300"
                         >
-                          Add Event
+                          Add Show
                         </button>
-                      </div>
-                    </form>
-                    <button
-                      onClick={() => setShowAddEvent(false)}
-                      className="w-full px-4 py-2 mt-2 text-base font-medium text-white bg-red-500 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
-                    >
-                      Close
-                    </button>
+                        {newEvent.availableShows.length > 0 && (
+                          <div>
+                            <h4 className="mb-2 font-medium text-gray-900 dark:text-white">
+                              Available Shows:
+                            </h4>
+                            <ul className="space-y-2">
+                              {newEvent.availableShows.map((show, index) => (
+                                <li
+                                  key={index}
+                                  className="p-2 bg-gray-100 rounded-md dark:bg-gray-700"
+                                >
+                                  {show.date} at {show.time}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        <div>
+                          <h4 className="mb-2 font-medium text-gray-900 dark:text-white">
+                            Seat Layout (Optional)
+                          </h4>
+                          <TheaterLayoutManager
+                            onLayoutConfirm={handleLayoutConfirm}
+                          />
+                          {isLayoutConfirmed && (
+                            <p className="mt-2 text-sm text-green-600">
+                              Layout confirmed and ready to be added to the
+                              event.
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex justify-end space-x-4">
+                          <button
+                            type="button"
+                            onClick={() => setShowAddEvent(false)}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          >
+                            Add Event
+                          </button>
+                        </div>
+                      </form>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -488,35 +564,87 @@ const VendorDashboard = () => {
                       Price: ${event.price}
                     </p>
                     <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">
-                      Date: {event.date} at {event.time}
-                    </p>
-                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">
                       Type: {event.type}
                     </p>
-                    {event.type === "movie" && event.trailer && (
-                      <a
-                        href={event.trailer}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center px-3 py-2 mt-2 text-sm font-medium leading-4 text-indigo-700 bg-indigo-100 border border-transparent rounded-md hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      >
-                        Watch Trailer
-                      </a>
+                    {event.type === "movie" && (
+                      <>
+                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">
+                          Cast: {event.cast}
+                        </p>
+                        {event.trailer && (
+                          <a
+                            href={event.trailer}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-3 py-2 mt-2 text-sm font-medium leading-4 text-indigo-700 bg-indigo-100 border border-transparent rounded-md hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                          >
+                            Watch Trailer
+                          </a>
+                        )}
+                      </>
+                    )}
+                    {event.type === "theater" && (
+                      <p className="mt-2 text-sm text-gray-500 dark:text-gray-300">
+                        Venue: {event.venue}
+                      </p>
+                    )}
+                    <div className="mt-2">
+                      <h4 className="font-medium text-gray-900 text-md dark:text-white">
+                        Available Shows:
+                      </h4>
+                      <ul className="mt-1 space-y-1">
+                        {event.availableShows &&
+                        event.availableShows.length > 0 ? (
+                          event.availableShows.map((show, index) => (
+                            <li
+                              key={index}
+                              className="text-sm text-gray-500 dark:text-gray-300"
+                            >
+                              {show.date} at {show.time}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-sm text-gray-500 dark:text-gray-300">
+                            {event.date} at {event.time}
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                    {event.layoutConfig ? (
+                      <div className="mt-4">
+                        <h4 className="font-medium text-gray-900 text-md dark:text-white">
+                          Seat Layout:
+                        </h4>
+                        <div className="p-2 mt-2 overflow-x-auto bg-gray-100 rounded-md dark:bg-gray-700">
+                          {renderSeatLayout(event.layoutConfig)}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-4">
+                        <h4 className="font-medium text-gray-900 text-md dark:text-white">
+                          No Seat Layout Chosen
+                        </h4>
+                      </div>
                     )}
                     <button
+                      onClick={() => handleEditEvent(event.id)}
+                      className="inline-flex items-center px-3 py-2 mt-4 text-sm font-medium leading-4 text-yellow-700 bg-yellow-100 border border-transparent rounded-md hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                    >
+                      <FaEdit className="mr-2" />
+                      Edit
+                    </button>
+                    <button
                       onClick={() => handleRemoveEvent(event.id)}
-                      className="inline-flex items-center px-3 py-2 mt-2 ml-2 text-sm font-medium leading-4 text-red-700 bg-red-100 border border-transparent rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                      className="inline-flex items-center px-3 py-2 mt-4 ml-2 text-sm font-medium leading-4 text-red-700 bg-red-100 border border-transparent rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                     >
                       Remove
                     </button>
-                    <div className="mt-4">
-                      <h4 className="font-medium text-gray-900 text-md dark:text-white">
-                        Seat Layout
-                      </h4>
-                      <div className="flex flex-wrap mt-2 overflow-y-auto max-h-40">
-                        {renderSeatLayout(event)}
-                      </div>
-                    </div>
+                    <button
+                      onClick={() => handlePublishEvent()}
+                      className="inline-flex items-center px-3 py-2 mt-4 ml-2 text-sm font-medium leading-4 text-blue-700 bg-green-100 border border-transparent rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    >
+                      Publish
+                    </button>
                   </div>
                 </div>
               ))}

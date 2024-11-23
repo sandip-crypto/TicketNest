@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PlusIcon, MinusIcon, CheckIcon, RotateCcwIcon } from "lucide-react";
 
-export default function TheaterLayoutManager() {
+const TheaterLayoutManager = ({ onLayoutConfirm }) => {
   const [rows, setRows] = useState(5);
   const [columns, setColumns] = useState(8);
   const [basePrice, setBasePrice] = useState(10);
@@ -11,8 +11,32 @@ export default function TheaterLayoutManager() {
   const [selectedSeats, setSelectedSeats] = useState(new Set());
   const [rowGaps, setRowGaps] = useState([]);
   const [columnGaps, setColumnGaps] = useState([]);
-  const [showFinalLayout, setShowFinalLayout] = useState(false);
-  const [finalLayout, setFinalLayout] = useState(null);
+
+  useEffect(() => {
+    const storedLayout = localStorage.getItem("theaterLayout");
+    if (storedLayout) {
+      const parsedLayout = JSON.parse(storedLayout);
+      setRows(parsedLayout.rows);
+      setColumns(parsedLayout.columns);
+      setBasePrice(parsedLayout.basePrice);
+      setRemovedSeats(new Set(parsedLayout.removedSeats));
+      setRowGaps(parsedLayout.rowGaps);
+      setColumnGaps(parsedLayout.columnGaps);
+      generateLayout();
+    }
+  }, []);
+
+  const saveLayoutToLocalStorage = () => {
+    const layoutToSave = {
+      rows,
+      columns,
+      basePrice,
+      removedSeats: Array.from(removedSeats),
+      rowGaps,
+      columnGaps,
+    };
+    localStorage.setItem("theaterLayout", JSON.stringify(layoutToSave));
+  };
 
   const generateLayout = () => {
     const seats = [];
@@ -55,10 +79,8 @@ export default function TheaterLayoutManager() {
 
   const handleConfirmLayout = () => {
     if (previewLayout) {
-      console.log("Layout confirmed:", previewLayout);
-      alert("Layout confirmed and saved");
-      setFinalLayout(previewLayout);
-      setShowFinalLayout(true);
+      onLayoutConfirm(previewLayout);
+      saveLayoutToLocalStorage();
     }
   };
 
@@ -67,10 +89,9 @@ export default function TheaterLayoutManager() {
     setPreviewLayout(null);
     setShowPreview(false);
     setSelectedSeats(new Set());
-    setShowFinalLayout(false);
-    setFinalLayout(null);
     setRowGaps([]);
     setColumnGaps([]);
+    localStorage.removeItem("theaterLayout");
   };
 
   const handleAddRowGap = (e) => {
@@ -94,10 +115,10 @@ export default function TheaterLayoutManager() {
   );
 
   const renderSeats = (layout, isPreview = true) => (
-    <div className="grid gap-4">
+    <div className="grid gap-2">
       {Array.from({ length: layout.rows }, (_, rowIndex) => (
         <React.Fragment key={`row-${rowIndex + 1}`}>
-          <div className="flex gap-4">
+          <div className="flex gap-2">
             {Array.from({ length: layout.columns }, (_, colIndex) => {
               const seat = layout.seats.find(
                 (s) => s.row === rowIndex + 1 && s.column === colIndex + 1
@@ -327,19 +348,8 @@ export default function TheaterLayoutManager() {
           </div>
         </div>
       )}
-
-      {showFinalLayout && finalLayout && (
-        <div className="p-6 bg-white rounded-lg shadow-lg">
-          <h3 className="mb-4 text-xl font-bold">Final Layout</h3>
-
-          <div className="mb-6 overflow-x-auto">
-            <div className="inline-block min-w-full">
-              {renderScreen()}
-              {renderSeats(finalLayout, false)}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
-}
+};
+
+export default TheaterLayoutManager;

@@ -17,7 +17,7 @@ const Footer = () => {
         {/* Logo and Description */}
         <div className="flex flex-col items-center justify-center mb-8 space-y-4">
           <Link
-            to="/explore/home"
+            to="/ticketnest/explore/home"
             className="text-2xl font-bold sm:text-3xl md:text-4xl"
           >
             Ticket<span className="text-teal-600">Nest</span>
