@@ -1,3 +1,34 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*  These are specially for Quill Text Editor */
+#0066cc :root {
+  --background-light: #ffffff;
+  --background-dark: #2d3748;
+  --text-light: #1a202c;
+  --text-dark: #e2e8f0;
+  --toolbar-background-light: #f7fafc;
+  --toolbar-background-dark: #2d3748;
+  --toolbar-border-light: #e2e8f0;
+  --toolbar-border-dark: #4a5568;
+  --editor-background-light: #ffffff;
+  --editor-background-dark: #1a202c;
+}
+
+/* Define light and dark themes */
+.light-mode {
+  --background-color: var(--background-light);
+  --text-color: var(--text-light);
+  --toolbar-background: var(--toolbar-background-light);
+  --toolbar-border: var(--toolbar-border-light);
+  --editor-background: var(--editor-background-light);
+}
+
+.dark-mode {
+  --background-color: var(--background-dark);
+  --text-color: var(--text-dark);
+  --toolbar-background: var(--toolbar-background-dark);
+  --toolbar-border: var(--toolbar-border-dark);
+  --editor-background: var(--editor-background-dark);
+}

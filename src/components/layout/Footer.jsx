@@ -1,14 +1,23 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   FaFacebook,
   FaInstagram,
   FaPinterest,
   FaTwitter,
 } from "react-icons/fa";
+import logo from "../../assets/images/ticketnest_logo.png";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const navigate = useNavigate();
+
+  const handleNavigation = (route) => {
+    // Scroll to the top
+    window.scrollTo(0, 0);
+    // Navigate to the specified route
+    navigate(route);
+  };
 
   return (
     <footer className="text-white bg-gray-900">
@@ -16,12 +25,19 @@ const Footer = () => {
       <div className="container px-4 py-8 mx-auto sm:py-12 md:py-16">
         {/* Logo and Description */}
         <div className="flex flex-col items-center justify-center mb-8 space-y-4">
-          <Link
-            to="/ticketnest/explore/home"
-            className="text-2xl font-bold sm:text-3xl md:text-4xl"
+          <div
+            onClick={() => handleNavigation("/ticketnest/explore/home")}
+            className="text-2xl font-bold cursor-pointer sm:text-3xl md:text-4xl"
           >
-            Ticket<span className="text-teal-600">Nest</span>
-          </Link>
+            <div className="flex items-center">
+              Ticket<span className="text-teal-600">Nest</span>
+              <img
+                src={logo}
+                alt="ticketnest_logo"
+                className="w-[100px] h-auto"
+              />
+            </div>
+          </div>
           <p className="max-w-xl text-sm text-center text-gray-400 sm:text-base md:text-lg">
             Your Entertainment, Your Way. Book tickets for movies, events,
             plays, games, and more - all in one place.
@@ -35,20 +51,20 @@ const Footer = () => {
             <h2 className="mb-4 text-lg font-semibold sm:text-xl">Services</h2>
             <ul className="space-y-2">
               <li>
-                <Link
-                  to="#"
+                <button
+                  onClick={() => handleNavigation("/ticketnest/marketing")}
                   className="text-sm text-gray-400 hover:text-teal-400 sm:text-base"
                 >
                   Marketing
-                </Link>
+                </button>
               </li>
               <li>
-                <Link
-                  to="#"
+                <button
+                  onClick={() => handleNavigation("/ticketnest/advertisement")}
                   className="text-sm text-gray-400 hover:text-teal-400 sm:text-base"
                 >
                   Advertisement
-                </Link>
+                </button>
               </li>
             </ul>
           </div>
@@ -58,20 +74,20 @@ const Footer = () => {
             <h2 className="mb-4 text-lg font-semibold sm:text-xl">Company</h2>
             <ul className="space-y-2">
               <li>
-                <Link
-                  to="#"
+                <button
+                  onClick={() => handleNavigation("/ticketnest/about-us")}
                   className="text-sm text-gray-400 hover:text-teal-400 sm:text-base"
                 >
                   About Us
-                </Link>
+                </button>
               </li>
               <li>
-                <Link
-                  to="#"
+                <button
+                  onClick={() => handleNavigation("/ticketnest/contact-us")}
                   className="text-sm text-gray-400 hover:text-teal-400 sm:text-base"
                 >
-                  Contact
-                </Link>
+                  Contact Us
+                </button>
               </li>
             </ul>
           </div>
@@ -81,28 +97,28 @@ const Footer = () => {
             <h2 className="mb-4 text-lg font-semibold sm:text-xl">Legal</h2>
             <ul className="space-y-2">
               <li>
-                <Link
-                  to="#"
+                <button
+                  onClick={() => handleNavigation("/ticketnest/terms-of-use")}
                   className="text-sm text-gray-400 hover:text-teal-400 sm:text-base"
                 >
                   Terms of Use
-                </Link>
+                </button>
               </li>
               <li>
-                <Link
-                  to="#"
+                <button
+                  onClick={() => handleNavigation("/ticketnest/privacy-policy")}
                   className="text-sm text-gray-400 hover:text-teal-400 sm:text-base"
                 >
                   Privacy Policy
-                </Link>
+                </button>
               </li>
               <li>
-                <Link
-                  to="#"
+                <button
+                  onClick={() => handleNavigation("/ticketnest/cookie-policy")}
                   className="text-sm text-gray-400 hover:text-teal-400 sm:text-base"
                 >
                   Cookie Policy
-                </Link>
+                </button>
               </li>
             </ul>
           </div>
@@ -113,30 +129,30 @@ const Footer = () => {
               Connect with Us
             </h2>
             <div className="flex justify-center mb-4 space-x-4 sm:justify-start">
-              <Link
-                to="#"
+              <button
+                onClick={() => window.open("#", "_blank")}
                 className="text-gray-400 transition-colors duration-300 hover:text-teal-400"
               >
                 <FaFacebook size={24} />
-              </Link>
-              <Link
-                to="#"
+              </button>
+              <button
+                onClick={() => window.open("#", "_blank")}
                 className="text-gray-400 transition-colors duration-300 hover:text-teal-400"
               >
                 <FaInstagram size={24} />
-              </Link>
-              <Link
-                to="#"
+              </button>
+              <button
+                onClick={() => window.open("#", "_blank")}
                 className="text-gray-400 transition-colors duration-300 hover:text-teal-400"
               >
                 <FaPinterest size={24} />
-              </Link>
-              <Link
-                to="#"
+              </button>
+              <button
+                onClick={() => window.open("#", "_blank")}
                 className="text-gray-400 transition-colors duration-300 hover:text-teal-400"
               >
                 <FaTwitter size={24} />
-              </Link>
+              </button>
             </div>
             <h2 className="mb-2 text-lg font-semibold sm:text-xl">
               Get Latest Updates

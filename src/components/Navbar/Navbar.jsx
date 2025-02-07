@@ -13,20 +13,21 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
-    { to: "/explore/movies", label: "Movies", icon: <MdLocalMovies /> },
-    { to: "/explore/events", label: "Events", icon: <MdEvent /> },
+    { to: "/ticketnest/movies", label: "Movies", icon: <MdLocalMovies /> },
+    { to: "/ticketnest/events", label: "Events", icon: <MdEvent /> },
     {
-      to: "/explore/games-&-sports",
+      to: "/ticketnest/games-&-sports",
       label: "Games",
       icon: <MdSportsEsports />,
     },
-    { to: "/explore/theatre", label: "Theatres", icon: <MdTheaters /> },
+    { to: "/ticketnest/theatre", label: "Theatres", icon: <MdTheaters /> },
+    { to: "/ticketnest/concerts", label: "Concerts", icon: <MdTheaters /> },
   ];
 
   return (
     <nav className="bg-gray-100 shadow-md ">
       <div className="container px-4 mx-auto">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-10">
           <div className="flex items-center">
             <div className="hidden md:block">
               <div className="flex items-baseline space-x-4">
